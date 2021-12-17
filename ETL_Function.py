@@ -10,6 +10,7 @@ import json
 import sqlalchemy
 from sqlalchemy import  create_engine
 import mysql.connector
+import pandas as pd
 import psycopg2
 
 
@@ -36,40 +37,21 @@ def GetDataRaw(**kwargs):
   ti = kwargs['ti']
   result = requests.get('https://covid19-public.digitalservice.id/api/v1/rekapitulasi_v2/jabar/harian?level=kab').json()
   data_raw=result['data']['content']
+  n_dataraw=len(data_raw)
   ti.xcom_push('data_raw_covid', data_raw)
+  MYengine = sqlalchemy.create_engine("mysql+pymysql://digitalskola:skola123@173.82.100.10:3311/digitalskola")
+  try:
+      df_raw=pd.DataFrame(data_raw)
+      df_raw.to_sql('temp_raw_covid',con=MYengine, if_exists = 'replace', index=False)
+      sql_df = pd.read_sql("""SELECT COUNT(*) as total_data FROM temp_raw_covid""",con=MYengine)
+      n_insert=sql_df['total_data'][0]
+  except:
+      pass
   print (f'num of data : {len(data_raw)}')
-  
+  print(f'num of data insert to Mysql : {n_insert}')
 
 #Function for extract from dict to SQL
 def ExtractDataRaw(**kwargs):
-    ti = kwargs['ti']
-    raw_data = ti.xcom_pull(task_ids='get_raw_covid', key='data_raw_covid')
-    #raw_data = json.loads(extract_data)
-    #print(type(raw_data))
-    
-    n=0
-    e=0
-    for dt in raw_data:
-        tex=''
-        for k,v in zip(dt.keys(),dt.values()):
-            if k=='tanggal' or k=='kode_prov' or k=='nama_prov' or k=='kode_kab' or k=='nama_kab' :
-                tex += f"'{v}',"
-            else:
-                tex += f"{v},"
-        tex=tex[:len(tex)-1]
-        text=f"({tex})"
-        sql = (
-            f"INSERT INTO temp_raw_covid (tanggal,kode_prov,nama_prov,kode_kab,nama_kab,suspect,suspect_diisolasi,\
-            suspect_discarded,closecontact,closecontact_dikarantina,closecontact_discarded,probable_discarded,\
-            probable_diisolasi,probable_meninggal,confirmation,confirmation_diisolasi,confirmation_selesai,\
-            confirmation_meninggal,suspect_meninggal_harian,closecontact_meninggal_harian) VALUES ({tex})")
-        try :
-            sqlcur.execute(sql)
-            mydb.commit()
-            n += 1
-        except:
-            e += 1
-            pass
     print(f'success insert : {n} , error insert : {e}')
 
 
@@ -178,6 +160,8 @@ def InsertMyCase(**kwargs):
             e += 1
             pass
     print (f'success insert master case : {i} , failed to insert : {e}')
+
+
            
                 
     

@@ -1,3 +1,4 @@
+/*update 2021-12-17*/
 insert into daily_province (province_id,case_id,date,total)
 select kode_prov
        ,(select case_id from case_covid where status_detail='closecontact_discarded') as case_id
@@ -16,7 +17,7 @@ union
 select kode_prov
        ,(select case_id from case_covid where status_detail='closecontact_meninggal') as case_id
        ,tanggal 
-       ,sum(closecontact_meninggal_harian) as total
+       ,sum(closecontact_meninggal) as total
 from staging_closecontact
 group by kode_prov,(select case_id from case_covid where status_detail='closecontact_meninggal'),tanggal 
 union	
@@ -58,14 +59,14 @@ union
 select kode_prov
        ,(select case_id from case_covid where status_detail='suspect_meninggal') as case_id
        ,tanggal 
-       ,sum(suspect_meninggal_harian) as total
+       ,sum(suspect_meninggal) as total
 from staging_suspect
 group by kode_prov,(select case_id from case_covid where status_detail='suspect_meninggal'),tanggal
 union
 select kode_prov
        ,(select case_id from case_covid where status_detail='confirmation_sembuh') as case_id
        ,tanggal 
-       ,sum(confirmation_selesai) as total
+       ,sum(confirmation_sembuh) as total
 from staging_confirmation
 group by kode_prov,(select case_id from case_covid where status_detail='confirmation_sembuh'),tanggal
 union

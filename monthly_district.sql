@@ -1,3 +1,4 @@
+/*update 2021-12-17*/
 insert into monthly_district (district_id,case_id,mont,total)
 select kode_kab
        ,(select case_id from case_covid where status_detail='closecontact_discarded') as case_id
@@ -16,7 +17,7 @@ union
 select kode_kab
        ,(select case_id from case_covid where status_detail='closecontact_meninggal') as case_id
        ,to_char(tanggal,'mm-YYYY') as mon
-       ,sum(closecontact_meninggal_harian) as total
+       ,sum(closecontact_meninggal) as total
 from staging_closecontact
 group by kode_kab,(select case_id from case_covid where status_detail='closecontact_meninggal'),to_char(tanggal,'mm-YYYY') 
 union	
@@ -58,14 +59,14 @@ union
 select kode_kab
        ,(select case_id from case_covid where status_detail='suspect_meninggal') as case_id
        ,to_char(tanggal,'mm-YYYY') as mon
-       ,sum(suspect_meninggal_harian) as total
+       ,sum(suspect_meninggal) as total
 from staging_suspect
 group by kode_kab,(select case_id from case_covid where status_detail='suspect_meninggal'),to_char(tanggal,'mm-YYYY')
 union
 select kode_kab
        ,(select case_id from case_covid where status_detail='confirmation_sembuh') as case_id
        ,to_char(tanggal,'mm-YYYY') as mon
-       ,sum(confirmation_selesai) as total
+       ,sum(confirmation_sembuh) as total
 from staging_confirmation
 group by kode_kab,(select case_id from case_covid where status_detail='confirmation_sembuh'),to_char(tanggal,'mm-YYYY')
 union

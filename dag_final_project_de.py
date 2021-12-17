@@ -42,13 +42,7 @@ with DAG('ETL_Data_Covid_Jabar',
         python_callable=GetDataRaw,
 		provide_context=True,
     )
-
-    Extract_data = PythonOperator(
-        task_id='extract_data',
-        python_callable=ExtractDataRaw,
-        provide_context=True,
-    )
-    
+   
     ImportMasterProvince = PythonOperator(
         task_id='import_data_master_province',
         python_callable=InserDimProvince,
@@ -120,8 +114,14 @@ with DAG('ETL_Data_Covid_Jabar',
         postgres_conn_id='progress_rackner',
         sql='sql/daily_province.sql'
     )
+    
+    TruncTable = PostgresOperator(
+        task_id="Clear_Table",
+        postgres_conn_id='progress_rackner',
+        sql='sql/truncate_table_dim.sql'
+    )
 
-    starting >> Get_Raw_Data >> Extract_data >> [ImportStagingClose,ImportStagingSuspect,ImportStagingProblable,ImportStagingConfirmation] 
+    starting >> Get_Raw_Data  >> TruncTable >> [ImportStagingClose,ImportStagingSuspect,ImportStagingProblable,ImportStagingConfirmation] 
     [ImportStagingClose,ImportStagingSuspect,ImportStagingProblable,ImportStagingConfirmation] >> ImportMasterProvince >> [ImportMasterDistrict,ImportMasterCase ]
     [ImportMasterDistrict,ImportMasterCase ] >> InsertFactProvDay >> [InsertFactProvYear,InsertFactProvMon,InsertFactDisYear,InsertFactDisMon]
     #ImportMasterCase >> InsertFactProvYear >> InsertFactProvMon >> InsertFactProvDay

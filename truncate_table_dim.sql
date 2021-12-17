@@ -1,0 +1,12 @@
+truncate district;
+delete from province where nama_prov is not null;
+truncate case_covid;
+truncate staging_closecontact;
+truncate staging_suspect;
+truncate staging_confirmation;
+truncate staging_probable;
+truncate daily_province ;
+truncate yearly_province;
+truncate monthly_province;
+truncate yearly_district;
+truncate monthly_district;
